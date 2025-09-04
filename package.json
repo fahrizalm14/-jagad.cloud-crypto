@@ -1,6 +1,6 @@
 {
     "name": "@jagad.cloud/crypto",
-    "version": "0.1.0",
+    "version": "1.0.2",
     "description": "Browser-safe helpers for password-derived keys, keypair generation, and private-key encryption using Web Crypto API.",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,20 +10,44 @@
     "scripts": {
         "build": "tsc -p .",
         "test": "jest",
-        "test:c": "jest --coverage",
+        "test:coverage": "jest --coverage",
         "lint": "eslint . --ext .ts",
-        "prepare": "npm run build",
-        "console": "tsx -r fake-indexeddb/auto src/console.ts --watch"
+        "prepare": "npm run build"
     },
+    "keywords": [
+        "crypto",
+        "webcrypto",
+        "aes-gcm",
+        "rsa-oaep",
+        "encryption",
+        "private-key",
+        "keypair",
+        "typescript",
+        "browser"
+    ],
+    "author": "Muhammad Andri Fahrizal <emhafahrizal@gmail.com>",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/fahrizalm14/-jagad.cloud-crypto.git"
+    },
+    "bugs": {
+        "url": "https://github.com/fahrizalm14/-jagad.cloud-crypto/issues"
+    },
+    "homepage": "https://github.com/fahrizalm14/-jagad.cloud-crypto#readme",
     "devDependencies": {
         "@types/jest": "^29.5.2",
         "fake-indexeddb": "^6.2.2",
         "jest": "^29.6.1",
         "ts-jest": "^29.1.0",
         "tsx": "^4.20.5",
-        "typescript": "^5.2.2"
+        "typescript": "^5.2.2",
+        "eslint": "^8.49.0"
     },
     "dependencies": {
         "idb": "^8.0.3"
+    },
+    "publishConfig": {
+        "access": "public"
     }
 }

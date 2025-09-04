@@ -1,35 +1,30 @@
-name: Release
+name: Publish NPM
 
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "v*.*.*"   # trigger hanya jika push tag versi, misal v1.0.1
 
 jobs:
-  release:
+  build-and-publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 20
-          registry-url: "https://registry.npmjs.org/"
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9 # sesuaikan dengan versi pnpm kamu
+          registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
-        run: pnpm install
+        run: npm ci
 
       - name: Build package
-        run: pnpm build
+        run: npm run build
 
       - name: Publish to npm
-        run: pnpm publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
