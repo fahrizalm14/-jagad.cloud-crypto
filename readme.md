@@ -136,29 +136,37 @@ const encryptedPrivateKeyNew = await encryptPrivateKey(privRaw, derivedKeyNew);
 ## 📈 Diagram Alur
 
 ```mermaid
-flowchart TD
-    subgraph EncryptMessage
-        PT[Pesan Plaintext] --> AES[Encrypt dengan AES-GCM Key]
-        AES --> EM[Encrypted Message]
-        AESKey[AES Key] --> W1[Wrap AES Key dengan Public Key User 1]
-        AESKey --> W3[Wrap AES Key dengan Public Key User 3]
-        AESKey --> W5[Wrap AES Key dengan Public Key User 5]
-    end
+graph TD
+    %% Nodes
+    PT["Plaintext Message"]
+    AESK["AES-GCM Key"]
+    ENC["Encrypted Message (AES-GCM)"]
+    USER1_PUB["User1 Public Key (RSA-OAEP)"]
+    USER2_PUB["User2 Public Key (RSA-OAEP)"]
+    WRAP1["Wrapped AES Key for User1"]
+    WRAP2["Wrapped AES Key for User2"]
+    USER1_PRIV["User1 Private Key + Derived Key"]
+    USER2_PRIV["User2 Private Key + Derived Key"]
+    DECRYPT1["User1 Decrypts AES Key & Message"]
+    DECRYPT2["User2 Decrypts AES Key & Message"]
+    NEW_DK["New Derived Key (after password change)"]
+    RE_ENC["Re-encrypt Private Key with New Derived Key"]
 
-    subgraph UserDecrypt
-        W1 -->|Wrapped AES Key| UP1[Decrypt Private Key + Derived Key] --> UA1[Unwrap AES Key] --> DM1[Decrypt Message]
-        W3 -->|Wrapped AES Key| UP3[Decrypt Private Key + Derived Key] --> UA3[Unwrap AES Key] --> DM3[Decrypt Message]
-        W5 -->|Wrapped AES Key| UP5[Decrypt Private Key + Derived Key] --> UA5[Unwrap AES Key] --> DM5[Decrypt Message]
-    end
+    %% EncryptMessage Flow
+    PT --> AESK
+    AESK --> ENC
+    AESK --> WRAP1
+    AESK --> WRAP2
+    USER1_PUB --> WRAP1
+    USER2_PUB --> WRAP2
 
-    subgraph ReEncryptPrivateKey
-        OPK[Old Encrypted Private Key] + OD[Old Derived Key] --> DP[Decrypt Private Key] --> RP[Raw Private Key]
-        RP --> NP[Encrypt dengan New Derived Key] --> NPK[New Encrypted Private Key]
-    end
+    %% UserDecrypt Flow
+    WRAP1 --> USER1_PRIV --> DECRYPT1 --> ENC
+    WRAP2 --> USER2_PRIV --> DECRYPT2 --> ENC
 
-    style EncryptMessage fill:#f9f,stroke:#333,stroke-width:2px
-    style UserDecrypt fill:#9f9,stroke:#333,stroke-width:2px
-    style ReEncryptPrivateKey fill:#9cf,stroke:#333,stroke-width:2px
+    %% ReEncryptPrivateKey Flow
+    USER1_PRIV --> RE_ENC --> NEW_DK
+    USER2_PRIV --> RE_ENC
 ```
 
 ### Penjelasan Diagram
