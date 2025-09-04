@@ -4,6 +4,9 @@
     "description": "Browser-safe helpers for password-derived keys, keypair generation, and private-key encryption using Web Crypto API.",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "files": [
+        "dist"
+    ],
     "scripts": {
         "build": "tsc -p .",
         "test": "jest",
