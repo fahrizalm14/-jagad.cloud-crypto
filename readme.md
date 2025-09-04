@@ -40,8 +40,6 @@
 
 ## 📦 Instalasi
 
-1. **Pasang library (npm/yarn/pnpm)**
-
 ```bash
 npm install @jagad.cloud/crypto
 # atau
@@ -56,59 +54,82 @@ pnpm add @jagad.cloud/crypto
 
 ### 1. `ensureDeviceKey()`
 
-* Membuat device-specific secret key (32 bytes) & menyimpannya di IndexedDB.
-* Jika device key sudah ada, dikembalikan dari storage.
-
 ```ts
+import { ensureDeviceKey } from '@jagad.cloud/crypto';
+
 const deviceKey = await ensureDeviceKey();
 console.log(deviceKey.byteLength); // 32
 ```
 
+* Membuat device-specific secret key (32 bytes) & menyimpannya di IndexedDB.
+* Jika device key sudah ada, dikembalikan dari storage.
+
+---
+
 ### 2. `deriveKeyFromPassword(password, salt)`
 
-* Menghasilkan AES-GCM key dari password + salt + deviceKey.
-* PBKDF2 dengan 200.000 iterasi, hash SHA-256.
-
 ```ts
+import { deriveKeyFromPassword } from '@jagad.cloud/crypto';
+
 const derivedKey = await deriveKeyFromPassword("password123", "salt-test");
 console.log(derivedKey.type); // secret
 ```
 
+* Menghasilkan AES-GCM key dari password + salt + deviceKey.
+* PBKDF2 dengan 200.000 iterasi, hash SHA-256.
+
+---
+
 ### 3. `generateKeyPair()`
 
-* Membuat RSA key pair untuk user (wrap/unwrap AES key).
-
 ```ts
+import { generateKeyPair } from '@jagad.cloud/crypto';
+
 const { publicKey, privateKeyRaw } = await generateKeyPair();
 ```
 
+* Membuat RSA key pair untuk user (wrap/unwrap AES key).
+
+---
+
 ### 4. `encryptPrivateKey(privateKeyRaw, derivedKey)`
 
-* Mengenkripsi private key dengan AES-GCM derived key.
-
 ```ts
+import { encryptPrivateKey } from '@jagad.cloud/crypto';
+
 const encryptedPrivateKey = await encryptPrivateKey(privateKeyRaw, derivedKey);
 ```
 
+* Mengenkripsi private key dengan AES-GCM derived key.
+
+---
+
 ### 5. `decryptPrivateKey(encryptedPackage, derivedKey)`
 
-* Mendekripsi private key yang terenkripsi.
-
 ```ts
+import { decryptPrivateKey } from '@jagad.cloud/crypto';
+
 const privKey = await decryptPrivateKey(encryptedPrivateKey, derivedKey);
 console.log(privKey.type); // private
 ```
 
+* Mendekripsi private key yang terenkripsi.
+
+---
+
 ### 6. AES Utilities
 
 ```ts
+import { generateAesKey, encryptText, decryptText, wrapAesKey, unwrapAesKey } from '@jagad.cloud/crypto';
+
 const aesKey = await generateAesKey();
 const { ciphertext, iv } = await encryptText("Halo dunia!", aesKey);
 const decrypted = await decryptText(ciphertext, iv, aesKey);
-```
 
-* `wrapAesKey(aesKey, publicKey)` → Enkripsi AES key dengan RSA-OAEP
-* `unwrapAesKey(wrappedKey, privateKey)` → Dekripsi AES key
+// Wrap/unwrap AES key dengan RSA
+const wrapped = await wrapAesKey(aesKey, publicKey);
+const unwrapped = await unwrapAesKey(wrapped, privateKey);
+```
 
 ---
 
@@ -123,11 +144,16 @@ const decrypted = await decryptText(ciphertext, iv, aesKey);
 
 ### 8. Re-encrypt Private Key saat Password Diganti
 
-* Saat password user diganti, private key dienkripsi ulang dengan derivedKey baru.
-
 ```ts
+import { decryptPrivateKey, encryptPrivateKey } from '@jagad.cloud/crypto';
+
+// Decrypt dengan derived key lama
 const privKeyOld = await decryptPrivateKey(encryptedPrivateKeyOld, derivedKeyOld);
+
+// Export raw private key
 const privRaw = await crypto.subtle.exportKey("pkcs8", privKeyOld);
+
+// Encrypt ulang dengan derived key baru
 const encryptedPrivateKeyNew = await encryptPrivateKey(privRaw, derivedKeyNew);
 ```
 
@@ -137,7 +163,6 @@ const encryptedPrivateKeyNew = await encryptPrivateKey(privRaw, derivedKeyNew);
 
 ```mermaid
 graph TD
-    %% Nodes
     PT["Plaintext Message"]
     AESK["AES-GCM Key"]
     ENC["Encrypted Message (AES-GCM)"]
@@ -152,7 +177,6 @@ graph TD
     NEW_DK["New Derived Key (after password change)"]
     RE_ENC["Re-encrypt Private Key with New Derived Key"]
 
-    %% EncryptMessage Flow
     PT --> AESK
     AESK --> ENC
     AESK --> WRAP1
@@ -160,29 +184,12 @@ graph TD
     USER1_PUB --> WRAP1
     USER2_PUB --> WRAP2
 
-    %% UserDecrypt Flow
     WRAP1 --> USER1_PRIV --> DECRYPT1 --> ENC
     WRAP2 --> USER2_PRIV --> DECRYPT2 --> ENC
 
-    %% ReEncryptPrivateKey Flow
     USER1_PRIV --> RE_ENC --> NEW_DK
     USER2_PRIV --> RE_ENC
 ```
-
-### Penjelasan Diagram
-
-1. **EncryptMessage**:
-
-   * Pesan plaintext dienkripsi dengan AES-GCM key.
-   * AES key dibungkus (wrap) untuk masing-masing user dengan public key mereka.
-
-2. **UserDecrypt**:
-
-   * User yang memiliki private key + derived key dapat membuka wrapped AES key dan mendekripsi pesan.
-
-3. **ReEncryptPrivateKey**:
-
-   * Saat password user diganti, private key dienkripsi ulang dengan derived key baru tanpa kehilangan akses ke pesan yang sudah ada.
 
 ---
 
