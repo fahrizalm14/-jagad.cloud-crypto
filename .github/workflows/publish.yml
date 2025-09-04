@@ -1,37 +1,35 @@
-name: Publish npm Package
+name: Release
 
 on:
   push:
-    branches:
-      - main       # Publish juga bisa trigger lewat tag
     tags:
-      - 'v*.*.*'   # Hanya untuk versi semantik seperti v1.2.3
+      - "v*.*.*"
 
 jobs:
-  build-and-publish:
+  release:
     runs-on: ubuntu-latest
     steps:
-      # 1. Checkout kode
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # 2. Setup Node.js
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: https://registry.npmjs.org
+          registry-url: "https://registry.npmjs.org/"
 
-      # 3. Install dependencies
-      - run: npm ci
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9 # sesuaikan dengan versi pnpm kamu
 
-      # 4. Run tests
-      - run: npm test
+      - name: Install dependencies
+        run: pnpm install
 
-      # 5. Build package
-      - run: npm run build
+      - name: Build package
+        run: pnpm build
 
-      # 6. Publish to npm (hanya jika tag baru)
       - name: Publish to npm
-        if: startsWith(github.ref, 'refs/tags/')
-        run: npm publish
+        run: pnpm publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
